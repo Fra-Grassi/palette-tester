@@ -1,8 +1,3 @@
-library(shiny)
-library(ggplot2)
-library(dplyr)
-library(RColorBrewer)
-
 # ---- Palette Tester ----
 #
 # Author: Francesco Grassi
@@ -12,24 +7,61 @@ library(RColorBrewer)
 # The app allows users to input colors in hex format and have a quick visualization of how the colors
 # appear in different plot types.
 
+library(shiny)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(RColorBrewer)
+
 # Define UI
 ui <- fluidPage(
+  
   titlePanel("Color Palette Tester"),
-  sidebarLayout(
-    # Sidebar panel to input color values:
-    sidebarPanel(
-      textInput("color1", "Color 1 (hex):", value = ""),
-      textInput("color2", "Color 2 (hex):", value = ""),
-      textInput("color3", "Color 3 (hex):", value = ""),
-      textInput("color4", "Color 4 (hex):", value = "")
-    ),
-    # Main panel to display plots:
-    mainPanel(
-      plotOutput("barplot"),
-      plotOutput("lineplot"),
+  
+  hr(),  # horizontal rule
+  
+  # Row with three plots:
+  fluidRow(
+    column(
+      width = 4,
+      # Tabs to switch from manual to Coolors url input
+      tabsetPanel(id = "input_source",
+        tabPanel(
+          "Manual",
+          textInput("color1", "Color 1 (hex):", value = ""),
+          textInput("color2", "Color 2 (hex):", value = ""),
+          textInput("color3", "Color 3 (hex):", value = ""),
+          textInput("color4", "Color 4 (hex):", value = ""),
+          textInput("color5", "Color 5 (hex):", value = "")
+        ),
+        tabPanel(
+          "Coolors.co",
+          textInput(
+           "colorUrl", 
+           "Coolor.co palette url:",
+           value = "https://coolors.co/palette/264653-2a9d8f-e9c46a-f4a261-e76f51"
+          )
+        )
+      )
+      
+    ), 
+    column(
+      width = 6,
+      offset = 2,
+      plotOutput("barplot")
+      )
+  ),
+  
+  # Row with input boxes:
+  fluidRow(
+    column(
+      width = 6,
+      plotOutput("lineplot")
+      ),
+    column(
+      width = 6,
       plotOutput("densityplot")
-    ),
-    position = "right"  # sidebar panel position relative to main panel
+      )
   )
 )
 
@@ -38,16 +70,28 @@ server <- function(input, output) {
   
   # Deal with color input --------
   
-  # Reactive expression to define colors based on input boxes:
+  # Reactive expression to define colors based on input:
   color_palette <- reactive({
     
-    # If no color is provided, assign 4 default colors:
-    if(!isTruthy(c(input$color1, input$color2, input$color3, input$color4))){  
-      color_palette <- brewer.pal(n = 4, name = "Dark2")
-    } else {
-      # Otherwise use only valid color inputs:
-      color_palette <- c(input$color1, input$color2, input$color3, input$color4)
-      color_palette <- color_palette[color_palette != ""]
+    # If "Manual" tab is selected, check how many colors are provided:
+    if (input$input_source == "Manual"){
+      # If no color is provided, assign 5 default colors:
+      if(!isTruthy(c(input$color1, input$color2, input$color3, input$color4))){  
+        color_palette <- brewer.pal(n = 5, name = "Dark2")
+      } else {
+        # Otherwise use only valid color inputs:
+        color_palette <- c(input$color1, input$color2, input$color3, input$color4)
+        color_palette <- color_palette[color_palette != ""]
+      }
+    } else{
+      # If "Coolors" tab is selected, extract colors from url:
+      color_palette <- paste0(
+        "#",  # add "#"...
+        str_split(
+          str_remove(input$colorUrl, "https://coolors.co/palette/"),  # ... after removing unused url bit...
+          "-"  # ... and splitting the rest into a vector
+        )[[1]]
+      )
     }
   })
   
