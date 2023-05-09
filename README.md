@@ -2,7 +2,8 @@
 
 A little shiny app to test color palettes in different plot types.
 
-User can input up to 4 colors in hex format, which the app will use to display:
+User can input colors in hex format or by pasting a Coolors.co palette URL.  
+The app will display:
 
 - a bar plot
 - a line plot
