@@ -22,9 +22,9 @@ ui <- fluidPage(
   
   # Row with three plots:
   fluidRow(
+    # Tabs to switch from manual to Coolors url input
     column(
-      width = 4,
-      # Tabs to switch from manual to Coolors url input
+      width = 3,
       tabsetPanel(id = "input_source",
         tabPanel(
           "Manual",
@@ -45,21 +45,32 @@ ui <- fluidPage(
       )
       
     ), 
+    
+    # Bar plot next to input
     column(
-      width = 6,
-      offset = 2,
+      width = 4,
+      offset = 1,
       plotOutput("barplot")
+      ),
+    
+    # Scatter plot next to bar plot
+    column(
+      width = 4,
+      plotOutput("scatterplot")
       )
   ),
   
-  # Row with input boxes:
   fluidRow(
+    # Line plot under bar plot
     column(
-      width = 6,
+      width = 4,
+      offset = 4,
       plotOutput("lineplot")
       ),
+    
+    # Density plot under scatter plot
     column(
-      width = 6,
+      width = 4,
       plotOutput("densityplot")
       )
   )
@@ -110,6 +121,15 @@ server <- function(input, output) {
       )
   })
   
+  # Scatter plot:
+  df_scatter <- reactive({
+    data.frame(
+      x = rep(1:palette_length(), each = 10) + rnorm(10*palette_length()),
+      y = rep(1:palette_length(), each = 10) + rnorm(10*palette_length()),
+      col = factor(rep(1:palette_length(), each = 10))
+    )
+  })
+  
   # Line plot:
   df_line <- reactive({
     data.frame(
@@ -133,17 +153,37 @@ server <- function(input, output) {
   output$barplot <- renderPlot({
     ggplot(df_bar(), aes(x, y)) + 
       geom_bar(stat = "identity", fill = color_palette()) +
-      theme_minimal() +
-      ggtitle("Bar Plot")
+      ggtitle("Bar Plot") +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 30, hjust = 0.5)
+      )
+  })
+  
+  # Scatter plot:
+  output$scatterplot <- renderPlot({
+    ggplot(df_scatter(), aes(x, y, color = col)) + 
+      geom_point(size = 3) +
+      scale_color_manual(values = color_palette()) +
+      ggtitle("Scatter Plot") +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 30, hjust = 0.5),
+          legend.position = "none"
+      )
   })
   
   # Line plot:
   output$lineplot <- renderPlot({
     ggplot(df_line(), aes(x, y, color = col)) +
-      geom_line() +
+      geom_line(linewidth = 2) +
       scale_color_manual(values = color_palette()) +
-      theme_minimal() +
-      ggtitle("Line Plot")
+      ggtitle("Line Plot") +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 30, hjust = 0.5),
+        legend.position = "none"
+      )
   })
   
   # Density plot:
@@ -151,8 +191,12 @@ server <- function(input, output) {
     ggplot(df_density(), aes(x, fill = col)) +
       geom_density(alpha = .40, color = NA) +
       scale_fill_manual(values = color_palette()) +
-      theme_minimal() +
-      ggtitle("Density Plot")
+      ggtitle("Density Plot") +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 30, hjust = 0.5),
+        legend.position = "none"
+      )
   })
 }
 

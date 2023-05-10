@@ -6,6 +6,7 @@ User can input colors in hex format or by pasting a Coolors.co palette URL.
 The app will display:
 
 - a bar plot
+- a scatter plot
 - a line plot
 - a density plot
 
